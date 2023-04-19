@@ -2,7 +2,14 @@ let todoInput // miejsce gdzie user wpisuje tresc zadania
 let errorInfo // info o braku zadań / konieczności wpisania tekstu
 let addBtn // przycisk ADD - doddaje nowe elementy do listy
 let ulList // lista zadań, tagi Ul
-// let newTodo // nowo dodane li, nowe zadanie
+// let newTodo // nowo dodane li, nowe zadanie --> zmienną zadeklarowałem w funkcji addNewTodo i przesłałem jako argument do funkcji createToolsArea
+
+let popup // popup
+let popupInfo // tekst w popupie, jak sie doda pusty tekst
+let todoToEdit // edytowalny todo
+let popupInput // input w popupie
+let popupAddBtn // przycisk "zatwierdz" w popupie
+let popupCloseBtn // przycisk "anuluj" w popupie
 
 const main = () => {
 	// funkcja bedzie wywoływała wszystkie funkcje
@@ -16,12 +23,21 @@ const prepareDOMElements = () => {
 	errorInfo = document.querySelector('.error-info')
 	addBtn = document.querySelector('.btn-add')
 	ulList = document.querySelector('.todolist ul')
+
+	popup = document.querySelector('.popup')
+	popupInfo = document.querySelector('.popup-info')
+	popupInput = document.querySelector('.popup-input')
+	popupAddBtn = document.querySelector('.accept')
+	popupCloseBtn = document.querySelector('.cancel')
 }
 
 const prepareDOMEvents = () => {
 	// nadajemy nasłuchiwanie
 	addBtn.addEventListener('click', addNewTodo)
 	ulList.addEventListener('click', checkClick)
+	popupCloseBtn.addEventListener('click', closePupup)
+	popupAddBtn.addEventListener('click', changeTodoText)
+	todoInput.addEventListener('keyup', enterKeyCheck) // nasłuchiwanie czy przy wpisywaniu danych w inputa zostal wcisniete enter. Jeżeli tak, to odpala się funkcja
 }
 
 /*
@@ -63,17 +79,56 @@ const createToolsArea = newTodo => {
 	deleteBtn.classList.add('delete')
 	deleteBtn.innerHTML = '<i class="fas fa-times"></i>'
 
-	toolsPanel.append(completeBtn, editBtn, deleteBtn)
+	toolsPanel.append(completeBtn, editBtn, deleteBtn) // dodanie do diva stworzonych elementow html jako jego dzieci
 }
 
 const checkClick = e => {
 	if (e.target.classList.contains('complete')) {
-		e.target.closest('li').classList.toggle('completed')
-		e.target.classList.toggle('completed')
+		e.target.closest('li').classList.toggle('completed') // dodanie do najbliższego rodzica "li" klasy completed
+		e.target.classList.toggle('completed') // dodanie do targetowanego elemetnu klasy completed
 	} else if (e.target.classList.contains('edit')) {
-		console.log('edit');
-	}  else if (e.target.classList.contains('delete')) {
-		console.log('delete');
+		editTodo(e)
+	} else if (e.target.classList.contains('delete')) {
+		deleteTodo(e)
+	}
+}
+
+const editTodo = ePrzekazany => {
+	todoToEdit = ePrzekazany.target.closest('li') // po kliknięciu w edit zwraca najblizsze li.
+
+	// console.log(todoToEdit.firstChild); - po kliknięciu to zwraca nam treść li które klikamy
+	popupInput.value = todoToEdit.firstChild.textContent // przypisuje powyższą treść do inputa
+	popup.style.display = 'flex'
+
+	popupInfo.textContent = '' // czyszczenie info o tym ze trzeba podac jakas tresc, po tym gdy sie kliknie na anuluj to nie ma byc widoczna.
+}
+
+const closePupup = () => {
+	popup.style.display = 'none'
+}
+
+const changeTodoText = () => {
+	if (popupInput.value !== '') {
+		todoToEdit.firstChild.textContent = popupInput.value
+		popup.style.display = 'none'
+	} else {
+		popupInfo.textContent = 'Musisz podać jakąś treść'
+	}
+}
+
+const deleteTodo = ePrzekazany => {
+	ePrzekazany.target.closest('li').remove() // usuwanie elementów przyciskiem X
+
+	const allTodos = ulList.querySelectorAll('li')
+
+	if (allTodos.length === 0) {
+		errorInfo.textContent = 'Brak zadań na liście'
+	}
+}
+
+const enterKeyCheck = e => { // funkcja odpalająca dodanie todosa, czyli odpalenie funkcji addNewTodo() po kliknięciu enter
+	if (e.key === 'Enter') {
+		addNewTodo()
 	}
 }
 
